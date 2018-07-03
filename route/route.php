@@ -156,6 +156,7 @@ Route::rule('api/plugin/get','plugin/PluginBase/get');
 Route::rule('api/plugin/install','plugin/PluginBase/install');
 Route::rule('api/plugin/uninstall','plugin/PluginBase/uninstall');
 Route::rule('api/plugin/update','plugin/PluginBase/update');
+Route::rule('api/plugin/toggle','plugin/PluginBase/toggle');
 //前台相关接口
 /**
  * 前台用户接口

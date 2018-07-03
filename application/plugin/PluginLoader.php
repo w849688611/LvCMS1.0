@@ -29,7 +29,7 @@ class PluginLoader
     }
     public function init(){
         define('PLUGIN_PATH',Env::get('app_path').'plugin'.DIRECTORY_SEPARATOR.'plugin'.DIRECTORY_SEPARATOR);
-        define('PLUGIN_NAMESPACE',"\\app\\plugin\\Plugin\\");
+        define('PLUGIN_NAMESPACE',"\\app\\plugin\\plugin\\");
         foreach (glob(PLUGIN_PATH.'*/*.php') as $pluginFile){
             //获取插件文件信息
             $info=pathinfo($pluginFile);

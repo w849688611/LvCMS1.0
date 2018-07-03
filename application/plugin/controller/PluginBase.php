@@ -10,8 +10,10 @@ namespace app\plugin\controller;
 
 
 use app\lib\exception\TokenException;
+use app\plugin\enum\PluginStatusEnum;
 use app\plugin\model\PluginModel;
 use app\plugin\validate\PluginInfoValidate;
+use app\plugin\validate\PluginStatusValidate;
 use app\service\ResultService;
 use app\service\TokenService;
 use think\Controller;
@@ -118,5 +120,30 @@ class PluginBase extends Controller
         else{
             return ResultService::failure('当前版本较高，无需更新');
         }
+    }
+
+    /**切换插件开关状态
+     * @param Request $request
+     * @return \think\response\Json
+     * @throws TokenException
+     */
+    public function toggle(Request $request){
+        if(!TokenService::validAdminToken($request->header('token'))){
+            throw new TokenException();
+        }
+        (new PluginInfoValidate())->goCheck();
+        (new PluginStatusValidate())->goCheck();
+        $name=$request->param('name');
+        $author=$request->param('author');
+        $status=$request->param('status');
+        if(!PluginModel::isPluginInstall($name,$author)){
+            return ResultService::failure('插件未安装,无法使用开关');
+        }
+        $plugin=PluginModel::where('name','=',$name)
+            ->where('author','=',$author)
+            ->find();
+        $plugin->status=$status;
+        $plugin->save();
+        return ResultService::success('切换插件状态成功');
     }
 }
