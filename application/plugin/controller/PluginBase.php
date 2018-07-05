@@ -53,6 +53,7 @@ class PluginBase extends Controller
         $result=$pluginClass::install();
         if($result){
             $plugin=new PluginModel($request->param());
+            $plugin->version=(new $pluginClass())->getConfig()['version'];
             $plugin->allowField(true)->save();
             return ResultService::success('插件安装成功');
         }
