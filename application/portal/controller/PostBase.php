@@ -11,6 +11,7 @@ namespace app\portal\controller;
 
 use app\lib\exception\TokenException;
 use app\lib\validate\IDPositive;
+use app\lib\validate\IDSPositive;
 use app\portal\model\CategoryPostModel;
 use app\portal\model\CommentModel;
 use app\portal\model\PostModel;
@@ -63,20 +64,30 @@ class PostBase extends Controller
         if(!TokenService::validAdminToken($request->header('token'))){
             throw new TokenException();
         }
-        (new IDPositive())->goCheck();
-        $id=$request->param('id');
-        $post=PostModel::where('id','=',$id)->find();
-        if($post){
-            CategoryPostModel::where('post_id','=',$post->id)->delete();
-            CommentModel::where('post_id','=',$post->id)->delete();
-            $post->delete();
+        if($request->has('id')){
+            (new IDPositive())->goCheck();
+            $id=$request->param('id');
+            $post=PostModel::where('id','=',$id)->find();
+            if($post){
+                CategoryPostModel::where('post_id','=',$post->id)->delete();
+                CommentModel::where('post_id','=',$post->id)->delete();
+                $post->delete();
+                return ResultService::success('删除内容成功');
+            }
+            else{
+                return ResultService::failure('内容不存在');
+            }
+        }
+        else if($request->has('ids')){
+            (new IDSPositive())->goCheck();
+            $ids=$request->param('ids/a');
+            PostModel::where('id','in',$ids)->delete();
+            CategoryPostModel::where('post_id','in',$ids)->delete();
+            CommentModel::where('post_id','in',$ids)->delete();
             return ResultService::success('删除内容成功');
         }
-        else{
-            return ResultService::failure('内容不存在');
-        }
+        return ResultService::failure();
     }
-
     /**更新内容
      * @param Request $request
      * @return \think\response\Json
@@ -97,7 +108,9 @@ class PostBase extends Controller
                     $categoryIds[]=$category[$i]['id'];
                 }
                 CategoryPostModel::where('post_id','=',$post->id)->delete();
-                $post->category()->save($categoryIds);
+                if(count($categoryIds)>0){
+                    $post->category()->save($categoryIds);
+                }
             }
             if($request->has('post_status')){
                 $post->post_status=$request->param('post_status');

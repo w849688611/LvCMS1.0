@@ -6,7 +6,7 @@
  * Time: 下午5:56
  */
 
-namespace app\plugin\plugin\test\controller;
+namespace plugins\test\controller;
 
 
 use think\Controller;

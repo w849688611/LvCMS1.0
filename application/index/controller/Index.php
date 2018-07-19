@@ -3,6 +3,7 @@ namespace app\index\controller;
 
 use app\admin\model\AdminModel;
 use app\lib\exception\BaseException;
+use app\plugin\plugins\friendLink\FriendLink;
 use app\service\TokenService;
 use think\Controller;
 use think\Exception;
@@ -39,7 +40,8 @@ So much for unconsolidated sediments. Consolidated (or cemented) sediments, too,
 //        $temp=json_decode('{}',true);
 //
 //        echo json_encode(json_decode('[]'));
-       Hook::listen('test_start');
+       //Hook::listen('test_start');
+        FriendLink::test();
     }
 
 }

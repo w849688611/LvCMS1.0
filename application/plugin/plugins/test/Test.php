@@ -6,7 +6,7 @@
  * Time: 下午4:26
  */
 
-namespace app\plugin\plugin\test;
+namespace app\plugin\plugins\test;
 
 
 use app\plugin\Plugin;

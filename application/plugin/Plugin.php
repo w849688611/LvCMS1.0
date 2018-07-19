@@ -30,6 +30,7 @@ class Plugin
 //            ]
 //        ]
 //    ];
+    public $hookList;
     public $configFile;
     public $name;
     public $pluginPath;
@@ -74,12 +75,12 @@ class Plugin
         return strtolower(array_pop($class));
     }
     public static function install(){
-
+        return true;
     }
     public static function uninstall(){
-
+        return true;
     }
     public static function update(){
-
+        return true;
     }
 }

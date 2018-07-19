@@ -18,12 +18,23 @@ class PluginModel extends Model
 {
     protected $name='plugin';
 
+    /**检查插件是否安装
+     * @param $name
+     * @param $author
+     * @return bool
+     */
     public static function isPluginInstall($name,$author){
         $plugin=self::where('name','=',$name)
             ->where('author','=',$author)
             ->find();
         return $plugin?true:false;
     }
+
+    /**插件是否开启
+     * @param $name
+     * @param $author
+     * @return bool
+     */
     public static function isPluginOpen($name,$author){
         $plugin=self::where('name','=',$name)
             ->where('author','=',$author)
@@ -33,6 +44,14 @@ class PluginModel extends Model
         }
         return false;
     }
+
+    /**查找获取插件类名
+     * @param $name
+     * @param $author
+     * @return string
+     * @throws PluginConfigException
+     * @throws PluginFileNotFoundException
+     */
     public static function getPlugin($name,$author){
         foreach (glob(PLUGIN_PATH.'*/*.php') as $pluginFile){
             //获取插件文件信息
@@ -54,12 +73,36 @@ class PluginModel extends Model
                         return PLUGIN_NAMESPACE.$dirName."\\".$info['filename'];
                     }
                 }
-                throw new PluginConfigException();
             }
         }
         throw new PluginFileNotFoundException();
-       // return false;
     }
+
+    /**获取帮助文档内容
+     * @param $name
+     * @param $author
+     * @return bool|string
+     * @throws PluginFileNotFoundException
+     */
+    public static function getHelp($name,$author){
+        foreach (glob(PLUGIN_PATH.'*') as $pluginDir){
+            if(is_dir($pluginDir)){
+                $info=pathinfo($pluginDir);
+                if(strtolower($info['basename'])==strtolower($name)){
+                    $content='';
+                    if(is_file($pluginDir.DIRECTORY_SEPARATOR.PLUGIN_HELP_PATH.DIRECTORY_SEPARATOR.'help.html')){
+                        $content=file_get_contents($pluginDir.DIRECTORY_SEPARATOR.PLUGIN_HELP_PATH.DIRECTORY_SEPARATOR.'help.html');
+                    }
+                    return $content;
+                }
+            }
+        }
+        throw new PluginFileNotFoundException();
+    }
+
+    /**获取所有插件
+     * @return array
+     */
     public static function getAllPlugin(){
         $plugins=[];
         foreach (glob(PLUGIN_PATH.'*/*.php') as $pluginFile){

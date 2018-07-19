@@ -29,11 +29,11 @@ class Help extends Command
     {
         $this->ignoreValidationErrors();
 
-        $this->setName('help')->setDefinition([
-            new InputArgument('command_name', InputArgument::OPTIONAL, 'The command name', 'help'),
-            new InputOption('raw', null, InputOption::VALUE_NONE, 'To output raw command help'),
-        ])->setDescription('Displays help for a command')->setHelp(<<<EOF
-The <info>%command.name%</info> command displays help for a given command:
+        $this->setName('instruction')->setDefinition([
+            new InputArgument('command_name', InputArgument::OPTIONAL, 'The command name', 'instruction'),
+            new InputOption('raw', null, InputOption::VALUE_NONE, 'To output raw command instruction'),
+        ])->setDescription('Displays instruction for a command')->setHelp(<<<EOF
+The <info>%command.name%</info> command displays instruction for a given command:
 
   <info>php %command.full_name% list</info>
 

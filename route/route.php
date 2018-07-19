@@ -157,6 +157,11 @@ Route::rule('api/plugin/install','plugin/PluginBase/install');
 Route::rule('api/plugin/uninstall','plugin/PluginBase/uninstall');
 Route::rule('api/plugin/update','plugin/PluginBase/update');
 Route::rule('api/plugin/toggle','plugin/PluginBase/toggle');
+Route::rule('api/plugin/help','plugin/PluginBase/help');
+/**
+ * 其他接口
+ */
+Route::rule('api/dashboard/getBackDashBoard','dashboard/DashBoardBase/getBackDashBoard');
 //前台相关接口
 /**
  * 前台用户接口
@@ -178,7 +183,6 @@ Route::rule('api/front/portal/addComment','portal/PortalFront/addComment');
 Route::rule('api/front/portal/deleteComment','portal/PortalFront/deleteComment');
 Route::rule('api/front/portal/getNav','portal/PortalFront/getNav');
 Route::rule('api/front/portal/getSlide','portal/PortalFront/getSlide');
-Route::rule('api/front/portal/getFriendLink','portal/PortalFront/getFriendLink');
 
 
 Hook::listen('plugin_route');

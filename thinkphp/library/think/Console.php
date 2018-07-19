@@ -211,10 +211,10 @@ class Console
 
         $name = $this->getCommandName($input);
 
-        if (true === $input->hasParameterOption(['--help', '-h'])) {
+        if (true === $input->hasParameterOption(['--instruction', '-h'])) {
             if (!$name) {
-                $name  = 'help';
-                $input = new Input(['help']);
+                $name  = 'instruction';
+                $input = new Input(['instruction']);
             } else {
                 $this->wantHelps = true;
             }
@@ -253,9 +253,9 @@ class Console
     }
 
     /**
-     * Gets the help message.
+     * Gets the instruction message.
      * @access public
-     * @return string A help message.
+     * @return string A instruction message.
      */
     public function getHelp()
     {
@@ -409,7 +409,7 @@ class Console
             $this->wantHelps = false;
 
             /** @var HelpCommand $helpCommand */
-            $helpCommand = $this->get('help');
+            $helpCommand = $this->get('instruction');
             $helpCommand->setCommand($command);
 
             return $helpCommand;
@@ -650,7 +650,7 @@ class Console
     {
         return new InputDefinition([
             new InputArgument('command', InputArgument::REQUIRED, 'The command to execute'),
-            new InputOption('--help', '-h', InputOption::VALUE_NONE, 'Display this help message'),
+            new InputOption('--instruction', '-h', InputOption::VALUE_NONE, 'Display this instruction message'),
             new InputOption('--version', '-V', InputOption::VALUE_NONE, 'Display this console version'),
             new InputOption('--quiet', '-q', InputOption::VALUE_NONE, 'Do not output any message'),
             new InputOption('--verbose', '-v|vv|vvv', InputOption::VALUE_NONE, 'Increase the verbosity of messages: 1 for normal output, 2 for more verbose output and 3 for debug'),

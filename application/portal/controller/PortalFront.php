@@ -56,14 +56,18 @@ class PortalFront extends Controller
         (new IDPositive())->goCheck();
         $id=$request->param('id');
         $category=CategoryModel::where('id','=',$id)->find();
+        $order=$request->has('order')?strtolower($request->param('order')):'desc';
+        if(!($order=='desc'||$order=='asc')){
+            $order='desc';
+        }
         $pageResult=[];
         if($category){
-            $posts=$category->post()->where('post_status','=',PostStatusEnum::NORMAL)->with('template')->select()->toArray();
+            $posts=$category->post()->where('post_status','=',PostStatusEnum::NORMAL)->order('published_time',$order)->with('template')->select()->toArray();
             $pageResult['total']=count($posts);
             if($request->has('page')){
                 $pageResult['page']=$page=$request->param('page');
                 $pageResult['pageSize']=$pageSize=$request->has('pageSize')?$request->param('pageSize'):config('base.defaultPageSize');
-                $posts=$category->post()->where('post_status','=',PostStatusEnum::NORMAL)->with('template')->page($page,$pageSize)->select()->toArray();
+                $posts=$category->post()->where('post_status','=',PostStatusEnum::NORMAL)->order('published_time',$order)->with('template')->page($page,$pageSize)->select()->toArray();
             }
             $pageResult['pageData']=$posts;
         }

@@ -10,7 +10,7 @@ namespace app\plugin\controller;
 
 
 use app\lib\exception\TokenException;
-use app\plugin\enum\PluginStatusEnum;
+use app\plugin\exception\PluginFileNotFoundException;
 use app\plugin\model\PluginModel;
 use app\plugin\validate\PluginInfoValidate;
 use app\plugin\validate\PluginStatusValidate;
@@ -50,6 +50,9 @@ class PluginBase extends Controller
             return ResultService::failure('插件已安装无需重复安装');
         }
         $pluginClass=PluginModel::getPlugin($name,$author);
+        if(!class_exists($pluginClass)){
+           throw new PluginFileNotFoundException();
+        }
         $result=$pluginClass::install();
         if($result){
             $plugin=new PluginModel($request->param());
@@ -76,6 +79,9 @@ class PluginBase extends Controller
             return ResultService::failure('插件未安装,无需卸载');
         }
         $pluginClass=PluginModel::getPlugin($name,$author);
+        if(!class_exists($pluginClass)){
+            throw new PluginFileNotFoundException();
+        }
         $result=$pluginClass::uninstall();
         if($result){
             PluginModel::where('name','=',$name)
@@ -102,6 +108,9 @@ class PluginBase extends Controller
             return ResultService::failure('插件未安装,无法更新');
         }
         $pluginClass=PluginModel::getPlugin($name,$author);
+        if(!class_exists($pluginClass)){
+            throw new PluginFileNotFoundException();
+        }
         $config=(new $pluginClass())->getConfig();
         $newVersion=array_key_exists('version',$config)?$config['version']:0;
         $oldVersion=PluginModel::where('name','=',$name)
@@ -146,5 +155,21 @@ class PluginBase extends Controller
         $plugin->status=$status;
         $plugin->save();
         return ResultService::success('切换插件状态成功');
+    }
+
+    /**获取插件帮助文档
+     * @param Request $request
+     * @return \think\response\Json
+     * @throws TokenException
+     */
+    public function help(Request $request){
+        if(!TokenService::validAdminToken($request->header('token'))){
+            throw new TokenException();
+        }
+        (new PluginInfoValidate())->goCheck();
+        $name=$request->param('name');
+        $author=$request->param('author');
+        $help=PluginModel::getHelp($name,$author);
+        return ResultService::success('',['help'=>$help]);
     }
 }

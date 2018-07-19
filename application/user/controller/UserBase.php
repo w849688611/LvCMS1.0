@@ -11,6 +11,7 @@ namespace app\user\controller;
 
 use app\lib\exception\TokenException;
 use app\lib\validate\IDPositive;
+use app\lib\validate\IDSPositive;
 use app\service\ResultService;
 use app\service\TokenService;
 use app\user\enum\UserStatusEnum;
@@ -53,16 +54,25 @@ class UserBase extends Controller
         if(!TokenService::validAdminToken($request->header('token'))){
             throw new TokenException();
         }
-        (new IDPositive())->goCheck();
-        $id=$request->param('id');
-        $user=UserModel::where('id','=',$id)->find();
-        if($user){
-            $user->delete();
+        if($request->has('id')){
+            (new IDPositive())->goCheck();
+            $id=$request->param('id');
+            $user=UserModel::where('id','=',$id)->find();
+            if($user){
+                $user->delete();
+                return ResultService::success('删除用户成功');
+            }
+            else{
+                return ResultService::failure('用户不存在');
+            }
+        }
+        else if($request->has('ids')){
+            (new IDSPositive())->goCheck();
+            $ids=$request->param('ids/a');
+            UserModel::where('id','in',$ids)->delete();
             return ResultService::success('删除用户成功');
         }
-        else{
-            return ResultService::failure('用户不存在');
-        }
+        return ResultService::failure();
     }
 
     /**更新用户
