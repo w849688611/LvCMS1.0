@@ -9,20 +9,23 @@
 namespace app\admin\controller;
 
 
-use app\admin\model\AuthModel;
 use app\admin\model\RoleAuthModel;
 use app\admin\model\RoleModel;
 use app\admin\validate\role\RoleAddValidate;
+use app\base\controller\BaseController;
+use app\base\enum\ClientTypeEnum;
 use app\lib\exception\TokenException;
 use app\lib\validate\IDPositive;
 use app\service\ResultService;
 use app\service\TokenService;
-use think\Controller;
 use think\Db;
 use think\Request;
 
-class RoleBase extends Controller
+class RoleBase extends BaseController
 {
+    protected $beforeActionList=[
+        'checkAdminPermission'=>['except'=>'checkRoleOwnAuth']
+    ];
     /**添加角色
      * @param Request $request
      * @return \think\response\Json
@@ -30,9 +33,6 @@ class RoleBase extends Controller
      * @throws \app\lib\exception\ParamException
      */
     public function add(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new RoleAddValidate())->goCheck();
         $role=new RoleModel($request->param());
         $role->allowField(true)->save();
@@ -48,9 +48,6 @@ class RoleBase extends Controller
      * @throws \think\exception\DbException
      */
     public function delete(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new IDPositive())->goCheck();
         $id=$request->param('id');
         $role=RoleModel::where('id','=',$id)->find();
@@ -76,9 +73,6 @@ class RoleBase extends Controller
      * @throws \think\exception\DbException
      */
     public function update(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new IDPositive())->goCheck();
         $id=$request->param('id');
         $role=RoleModel::where('id','=',$id)->find();
@@ -88,20 +82,12 @@ class RoleBase extends Controller
         $role->save();
         return ResultService::success('更新角色成功');
     }
+
     /**获取角色
      * @param Request $request
      * @return \think\response\Json
-     * @throws TokenException
-     * @throws \app\lib\exception\ParamException
-     * @throws \think\Exception
-     * @throws \think\db\exception\DataNotFoundException
-     * @throws \think\db\exception\ModelNotFoundException
-     * @throws \think\exception\DbException
      */
     public function get(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         if($request->has('id')){
             (new IDPositive())->goCheck();
             $id=$request->param('id');
@@ -118,18 +104,12 @@ class RoleBase extends Controller
             return ResultService::makeResult(ResultService::Success,'',$roles->toArray());
         }
     }
+
     /**获取角色分页
      * @param Request $request
      * @return \think\response\Json
-     * @throws TokenException
-     * @throws \think\db\exception\DataNotFoundException
-     * @throws \think\db\exception\ModelNotFoundException
-     * @throws \think\exception\DbException
      */
     public function getByPage(Request $request){
-        if(!TokenService::validToken($request->header('token'))){
-            throw new TokenException();
-        }
         $pageResult=[];
         $role=RoleModel::select()->toArray();
         $pageResult['total']=count($role);
@@ -149,9 +129,6 @@ class RoleBase extends Controller
      * @throws \app\lib\exception\ParamException
      */
     public function bindAuth(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new IDPositive())->goCheck();
         if($request->has('auths')){
             $data=array();
@@ -180,7 +157,7 @@ class RoleBase extends Controller
     public function checkRoleOwnAuth(Request $request){
         $roleId=0;
         //带token来的，从token中取出roleId
-        if(TokenService::validAdminToken($request->header('token'))){
+        if(TokenService::validClientToken($request->header('token'),ClientTypeEnum::ADMIN)){
             $token=$request->header('token');
             if(TokenService::getCurrentVars($token,'super')=='1'){
                 return ResultService::success();

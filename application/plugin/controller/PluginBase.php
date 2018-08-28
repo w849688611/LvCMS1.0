@@ -9,27 +9,26 @@
 namespace app\plugin\controller;
 
 
+use app\base\controller\BaseController;
 use app\lib\exception\TokenException;
 use app\plugin\exception\PluginFileNotFoundException;
 use app\plugin\model\PluginModel;
 use app\plugin\validate\PluginInfoValidate;
 use app\plugin\validate\PluginStatusValidate;
 use app\service\ResultService;
-use app\service\TokenService;
-use think\Controller;
 use think\Request;
 
-class PluginBase extends Controller
+class PluginBase extends BaseController
 {
+    protected $beforeActionList=[
+        'checkAdminPermission'
+    ];
     /**获取插件列表
      * @param Request $request
      * @return \think\response\Json
      * @throws TokenException
      */
     public function get(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         $plugins=PluginModel::getAllPlugin();
         return ResultService::success('',$plugins);
     }
@@ -37,12 +36,10 @@ class PluginBase extends Controller
     /**安装插件
      * @param Request $request
      * @return \think\response\Json
+     * @throws PluginFileNotFoundException
      * @throws TokenException
      */
     public function install(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new PluginInfoValidate())->goCheck();
         $name=$request->param('name');
         $author=$request->param('author');
@@ -66,12 +63,9 @@ class PluginBase extends Controller
     /**卸载插件
      * @param Request $request
      * @return \think\response\Json
-     * @throws TokenException
+     * @throws PluginFileNotFoundException
      */
     public function uninstall(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new PluginInfoValidate())->goCheck();
         $name=$request->param('name');
         $author=$request->param('author');
@@ -95,12 +89,9 @@ class PluginBase extends Controller
     /**更新插件
      * @param Request $request
      * @return \think\response\Json
-     * @throws TokenException
+     * @throws PluginFileNotFoundException
      */
     public function update(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new PluginInfoValidate())->goCheck();
         $name=$request->param('name');
         $author=$request->param('author');
@@ -138,9 +129,6 @@ class PluginBase extends Controller
      * @throws TokenException
      */
     public function toggle(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new PluginInfoValidate())->goCheck();
         (new PluginStatusValidate())->goCheck();
         $name=$request->param('name');
@@ -163,9 +151,6 @@ class PluginBase extends Controller
      * @throws TokenException
      */
     public function help(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new PluginInfoValidate())->goCheck();
         $name=$request->param('name');
         $author=$request->param('author');

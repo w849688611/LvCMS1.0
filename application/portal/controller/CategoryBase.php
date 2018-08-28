@@ -9,27 +9,26 @@
 namespace app\portal\controller;
 
 
+use app\base\controller\BaseController;
 use app\lib\exception\TokenException;
 use app\lib\validate\IDPositive;
 use app\portal\model\CategoryModel;
 use app\portal\model\CategoryPostModel;
 use app\portal\validate\category\CategoryAddValidate;
 use app\service\ResultService;
-use app\service\TokenService;
-use think\Controller;
 use think\Request;
 
-class CategoryBase extends Controller
+class CategoryBase extends BaseController
 {
+    protected $beforeActionList=[
+        'checkAdminPermission'
+    ];
     /**添加栏目
      * @param Request $request
      * @return \think\response\Json
      * @throws TokenException
      */
     public function add(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new CategoryAddValidate())->goCheck();
         $category=new CategoryModel($request->param());
         if($request->has('content')){
@@ -48,9 +47,6 @@ class CategoryBase extends Controller
      * @throws TokenException
      */
     public function delete(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new IDPositive())->goCheck();
         $id=$request->param('id');
         $count=CategoryModel::where('parent_id','=',$id)->count();
@@ -73,9 +69,6 @@ class CategoryBase extends Controller
      * @throws TokenException
      */
     public function update(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new IDPositive())->goCheck();
         $id=$request->param('id');
         $category=CategoryModel::where('id','=',$id)->find();
@@ -121,9 +114,6 @@ class CategoryBase extends Controller
      * @throws TokenException
      */
     public function get(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         if($request->has('id')){
             (new IDPositive())->goCheck();
             $id=$request->param('id');
@@ -156,9 +146,6 @@ class CategoryBase extends Controller
      * @throws TokenException
      */
     public function getByPage(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         $pageResult=[];
         $category=CategoryModel::with('template')->select()->toArray();
         $pageResult['total']=count($category);
@@ -176,9 +163,6 @@ class CategoryBase extends Controller
      * @throws TokenException
      */
     public function getTree(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         $type=$request->has('type')?$request->param('type'):0;//返回结果的类型 0为树型 1为表格树型
         $tag=$request->has('tag')?$request->param('tag'):'checked';//表示是否被允许的键名，用于前端生成带复选框的树时使用
         $tagSuccessValue=$request->has('tagSuccessValue')?$request->param('tagSuccessValue'):'1';
@@ -210,9 +194,6 @@ class CategoryBase extends Controller
      * @throws TokenException
      */
     public function getPostOfCategory(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new IDPositive())->goCheck();
         $id=$request->param('id');
         $category=CategoryModel::where('id','=',$id)->find();

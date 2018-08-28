@@ -12,15 +12,18 @@ namespace app\admin\controller;
 use app\admin\model\AuthModel;
 use app\admin\model\RoleAuthModel;
 use app\admin\validate\auth\AuthAddValidate;
+use app\base\controller\BaseController;
 use app\lib\exception\TokenException;
 use app\lib\validate\IDPositive;
 use app\service\ResultService;
 use app\service\TokenService;
-use think\Controller;
 use think\Request;
 
-class AuthBase extends Controller
+class AuthBase extends BaseController
 {
+    protected $beforeActionList=[
+        'checkAdminPermission'
+    ];
     /**添加资源
      * @param Request $request
      * @return \think\response\Json
@@ -28,9 +31,6 @@ class AuthBase extends Controller
      * @throws \app\lib\exception\ParamException
      */
     public function add(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new AuthAddValidate())->goCheck();
         $auth=new AuthModel($request->param());
         if($request->has('more')){
@@ -50,9 +50,6 @@ class AuthBase extends Controller
      * @throws \think\exception\DbException
      */
     public function delete(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new IDPositive())->goCheck();
         $id=$request->param('id');
         $auth=AuthModel::where('id','=',$id)->find();
@@ -75,9 +72,6 @@ class AuthBase extends Controller
      * @throws \think\exception\DbException
      */
     public function update(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new IDPositive())->goCheck();
         $id=$request->param('id');
         $auth=AuthModel::where('id','=',$id)->find();
@@ -114,9 +108,6 @@ class AuthBase extends Controller
      * @throws \think\exception\DbException
      */
     public function get(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         if($request->has('id')){
             (new IDPositive())->goCheck();
             $id=$request->param('id');
@@ -152,9 +143,6 @@ class AuthBase extends Controller
      * @throws \think\exception\DbException
      */
     public function getByPage(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         $pageResult=[];
         $auth=AuthModel::select()->toArray();
         $pageResult['total']=count($auth);
@@ -176,9 +164,6 @@ class AuthBase extends Controller
      * @throws \think\exception\DbException
      */
     public function getTree(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         $tag=$request->has('tag')?$request->param('tag'):'checked';//表示权限是否被允许的键名，用于前端生成带复选框的树时使用
         $tagSuccessValue=$request->has('tagSuccessValue')?$request->param('tagSuccessValue'):'1';
         $tagFailureValue=$request->has('tagFailureValue')?$request->param('tagSuccessValue'):'0';
@@ -203,9 +188,6 @@ class AuthBase extends Controller
      * @throws TokenException
      */
     public function getTreeOfRole(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         $roleId=TokenService::getCurrentVars($request->header('token'),'role_id');
         $auths=RoleAuthModel::where('role_id','=',$roleId)->field('auth_id')->select()->toArray();
         $roleAuth=array();
@@ -223,9 +205,6 @@ class AuthBase extends Controller
      * @throws \think\exception\DbException
      */
     public function getParent(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         $parent=AuthModel::where('parent_id','=','0')->select();
         return ResultService::makeResult(ResultService::Success,'',$parent->toArray());
     }
@@ -240,9 +219,6 @@ class AuthBase extends Controller
      * @throws \think\exception\DbException
      */
     public function getChildren(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new IDPositive())->goCheck();
         $children=AuthModel::where('parent_id','=',$request->param('id'))->select();
         return ResultService::makeResult(ResultService::Success,'',$children);

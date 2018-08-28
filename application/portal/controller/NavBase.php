@@ -9,27 +9,27 @@
 namespace app\portal\controller;
 
 
+use app\base\controller\BaseController;
 use app\lib\exception\TokenException;
 use app\lib\validate\IDPositive;
+use app\lib\validate\IDSPositive;
 use app\portal\model\NavItemModel;
 use app\portal\model\NavModel;
 use app\portal\validate\nav\NavAddValidate;
 use app\service\ResultService;
-use app\service\TokenService;
-use think\Controller;
 use think\Request;
 
-class NavBase extends Controller
+class NavBase extends BaseController
 {
+    protected $beforeActionList=[
+        'checkAdminPermission'
+    ];
     /**添加导航组
      * @param Request $request
      * @return \think\response\Json
      * @throws TokenException
      */
     public function add(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new NavAddValidate())->goCheck();
         $nav=new NavModel($request->param());
         if($request->has('more')){
@@ -45,20 +45,26 @@ class NavBase extends Controller
      * @throws TokenException
      */
     public function delete(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
-        (new IDPositive())->goCheck();
-        $id=$request->param('id');
-        $nav=NavModel::where('id','=',$id)->find();
-        if($nav){
-            NavItemModel::where('nav_id','=',$nav->id)->delete();
-            $nav->delete();
-            return ResultService::success('删除导航组成功');
-        }
-        else{
+        if($request->has('id')){
+            (new IDPositive())->goCheck();
+            $id=$request->param('id');
+            $nav=NavModel::where('id','=',$id)->find();
+            if($nav){
+                NavItemModel::where('nav_id','=',$nav->id)->delete();
+                $nav->delete();
+                return ResultService::success('删除导航组成功');
+            }
             return ResultService::failure('导航组不存在');
         }
+        else if($request->has('ids')){
+            (new IDSPositive())->goCheck();
+            $ids=$request->param('ids/a');
+            NavModel::where('id','in',$ids)->delete();
+            NavItemModel::where('nav_id','in',$ids)->delete();
+            return ResultService::success('删除导航组成功');
+        }
+        return ResultService::failure();
+
     }
 
     /**更新导航组
@@ -67,9 +73,6 @@ class NavBase extends Controller
      * @throws TokenException
      */
     public function update(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new IDPositive())->goCheck();
         $id=$request->param('id');
         $nav=NavModel::where('id','=',$id)->find();
@@ -97,9 +100,6 @@ class NavBase extends Controller
      * @throws TokenException
      */
     public function get(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         if($request->has('id')){
             (new IDPositive())->goCheck();
             $id=$request->param('id');
@@ -124,9 +124,6 @@ class NavBase extends Controller
      * @throws TokenException
      */
     public function getByPage(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         $pageResult=[];
         $navs=NavModel::select()->toArray();
         $pageResult['total']=count($navs);
@@ -145,9 +142,6 @@ class NavBase extends Controller
      * @throws TokenException
      */
     public function getItemOfNav(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new IDPositive())->goCheck();
         $id=$request->param('id');
         $items=NavModel::generateItemTree($id);

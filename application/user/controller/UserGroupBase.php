@@ -9,46 +9,36 @@
 namespace app\user\controller;
 
 
-use app\lib\exception\TokenException;
+use app\base\controller\BaseController;
 use app\lib\validate\IDPositive;
 use app\service\ResultService;
-use app\service\TokenService;
 use app\user\model\UserGroupModel;
 use app\user\model\UserModel;
 use app\user\validate\UserGroupAddValidate;
-use think\Controller;
 use think\Request;
 
-class UserGroupBase extends Controller
+class UserGroupBase extends BaseController
 {
+    protected $beforeActionList=[
+        'checkAdminPermission'
+    ];
+
     /**添加用户组
      * @param Request $request
      * @return \think\response\Json
-     * @throws TokenException
-     * @throws \app\lib\exception\ParamException
      */
     public function add(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new UserGroupAddValidate())->goCheck();
         $userGroup=new UserGroupModel($request->param());
         $userGroup->allowField(true)->save();
         return ResultService::success('添加用户组成功');
     }
+
     /**删除用户组
      * @param Request $request
      * @return \think\response\Json
-     * @throws TokenException
-     * @throws \app\lib\exception\ParamException
-     * @throws \think\db\exception\DataNotFoundException
-     * @throws \think\db\exception\ModelNotFoundException
-     * @throws \think\exception\DbException
      */
     public function delete(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new IDPositive())->goCheck();
         $id=$request->param('id');
         $userGroup=UserGroupModel::where('id','=',$id)->find();
@@ -63,19 +53,12 @@ class UserGroupBase extends Controller
             return ResultService::failure('用户组不存在');
         }
     }
+
     /**更新用户组
      * @param Request $request
      * @return \think\response\Json
-     * @throws TokenException
-     * @throws \app\lib\exception\ParamException
-     * @throws \think\db\exception\DataNotFoundException
-     * @throws \think\db\exception\ModelNotFoundException
-     * @throws \think\exception\DbException
      */
     public function update(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new IDPositive())->goCheck();
         $id=$request->param('id');
         $userGroup=UserGroupModel::where('id','=',$id)->find();
@@ -85,20 +68,12 @@ class UserGroupBase extends Controller
         $userGroup->save();
         return ResultService::success('更新用户组成功');
     }
+
     /**获取用户组
      * @param Request $request
      * @return \think\response\Json
-     * @throws TokenException
-     * @throws \app\lib\exception\ParamException
-     * @throws \think\Exception
-     * @throws \think\db\exception\DataNotFoundException
-     * @throws \think\db\exception\ModelNotFoundException
-     * @throws \think\exception\DbException
      */
     public function get(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         if($request->has('id')){
             (new IDPositive())->goCheck();
             $id=$request->param('id');
@@ -115,18 +90,12 @@ class UserGroupBase extends Controller
             return ResultService::makeResult(ResultService::Success,'',$userGroup->toArray());
         }
     }
+
     /**获取用户组分页
      * @param Request $request
      * @return \think\response\Json
-     * @throws TokenException
-     * @throws \think\db\exception\DataNotFoundException
-     * @throws \think\db\exception\ModelNotFoundException
-     * @throws \think\exception\DbException
      */
     public function getByPage(Request $request){
-        if(!TokenService::validToken($request->header('token'))){
-            throw new TokenException();
-        }
         $pageResult=[];
         $userGroup=UserGroupModel::select()->toArray();
         $pageResult['total']=count($userGroup);
@@ -142,12 +111,8 @@ class UserGroupBase extends Controller
     /**用户组下用户
      * @param Request $request
      * @return \think\response\Json
-     * @throws TokenException
      */
     public function getUserOfGroup(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new IDPositive())->goCheck();
         $id=$request->param('id');
         $pageResult=[];

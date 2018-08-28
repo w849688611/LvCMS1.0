@@ -9,27 +9,26 @@
 namespace app\portal\controller;
 
 
+use app\base\controller\BaseController;
 use app\lib\exception\TokenException;
 use app\lib\validate\IDPositive;
 use app\portal\enum\TypeEnum;
 use app\portal\model\TemplateModel;
 use app\portal\validate\template\TemplateAddValidate;
 use app\service\ResultService;
-use app\service\TokenService;
-use think\Controller;
 use think\Request;
 
-class TemplateBase extends Controller
+class TemplateBase extends BaseController
 {
+    protected $beforeActionList=[
+        'checkAdminPermission'
+    ];
     /**添加模版
      * @param Request $request
      * @return \think\response\Json
      * @throws TokenException
      */
     public function add(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new TemplateAddValidate())->goCheck();
         $template=new TemplateModel($request->param());
         if($request->has('more')){
@@ -48,9 +47,6 @@ class TemplateBase extends Controller
      * @throws TokenException
      */
     public function delete(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new IDPositive())->goCheck();
         $id=$request->param('id');
         $template=TemplateModel::where('id','=',$id)->find();
@@ -69,9 +65,6 @@ class TemplateBase extends Controller
      * @throws TokenException
      */
     public function update(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new IDPositive())->goCheck();
         $id=$request->param('id');
         $template=TemplateModel::where('id','=',$id)->find();
@@ -89,10 +82,13 @@ class TemplateBase extends Controller
                 $template->more=json_decode(htmlspecialchars_decode($request->param('more')),true);
             }
             if($request->has('is_default')){
-                $template->is_default=$request->param('is_default');
-                if($template->is_default==1){
-                    TemplateModel::where('is_default','=','1')->update(['is_default'=>0]);
+                if($request->param('is_default')==1){
+                    TemplateModel::where('is_default','=','1')
+                        ->where('type','=',$template->type)
+                        ->where('id','<>',$template->id)
+                        ->update(['is_default'=>0]);
                 }
+                $template->is_default=$request->param('is_default');
             }
             $template->save();
             return ResultService::success('更新模版成功');
@@ -108,9 +104,6 @@ class TemplateBase extends Controller
      * @throws TokenException
      */
     public function get(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         if($request->has('id')){
             (new IDPositive())->goCheck();
             $id=$request->param('id');
@@ -135,9 +128,6 @@ class TemplateBase extends Controller
      * @throws TokenException
      */
     public function getCategoryTemplate(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         $templates=TemplateModel::getByType(TypeEnum::CATEGORY);
         return ResultService::success('',$templates->toArray());
     }
@@ -148,9 +138,6 @@ class TemplateBase extends Controller
      * @throws TokenException
      */
     public function getSingleTemplate(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         $templates=TemplateModel::getByType(TypeEnum::SINGLE);
         return ResultService::success('',$templates->toArray());
     }
@@ -161,9 +148,6 @@ class TemplateBase extends Controller
      * @throws TokenException
      */
     public function getPostTemplate(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         $templates=TemplateModel::getByType(TypeEnum::POST);
         return ResultService::success('',$templates->toArray());
     }

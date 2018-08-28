@@ -25,7 +25,7 @@ class PostModel extends Model
     }
     /*************存取器**************/
     public function getMoreAttr($value){
-        return json_decode($value);
+        return json_decode($value,true);
     }
     public function setMoreAttr($value){
         return json_encode($value);

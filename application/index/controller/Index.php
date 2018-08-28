@@ -6,6 +6,7 @@ use app\lib\exception\BaseException;
 use app\plugin\plugins\friendLink\FriendLink;
 use app\service\TokenService;
 use think\Controller;
+use think\facade\Env;
 use think\Exception;
 use think\facade\Hook;
 use think\Request;
@@ -41,7 +42,11 @@ So much for unconsolidated sediments. Consolidated (or cemented) sediments, too,
 //
 //        echo json_encode(json_decode('[]'));
        //Hook::listen('test_start');
-        FriendLink::test();
+        $file=Env::get('root_path').'public'.'/upload/72/910371e2933e02d1bad141702696ed.png';
+        if(is_file($file)){
+            echo 666;
+        }
+        echo $file;
     }
 
 }

@@ -9,16 +9,19 @@
 namespace app\file\controller;
 
 
+use app\base\controller\BaseController;
 use app\file\model\FileModel;
 use app\lib\exception\TokenException;
 use app\lib\validate\IDPositive;
 use app\service\ResultService;
 use app\service\TokenService;
-use think\Controller;
 use think\Request;
 
-class FileBase extends Controller
+class FileBase extends BaseController
 {
+    protected $beforeActionList=[
+        'checkAdminPermission'=>['only'=>'get,getByPage']
+    ];
     /**上传文件
      * @param Request $request
      * @return \think\response\Json
@@ -112,9 +115,6 @@ class FileBase extends Controller
      * @throws TokenException
      */
     public function get(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         if($request->has('id')){
             (new IDPositive())->goCheck();
             $id=$request->param('id');
@@ -123,7 +123,7 @@ class FileBase extends Controller
                 return ResultService::makeResult(ResultService::Success,'',$file->toArray());
             }
             else{
-                return ResultService::failure('用户不存在');
+                return ResultService::failure('文件不存在');
             }
         }
         else{
@@ -138,9 +138,6 @@ class FileBase extends Controller
      * @throws TokenException
      */
     public function getByPage(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         $pageResult=[];
         $file=FileModel::select()->toArray();
         $pageResult['total']=count($file);

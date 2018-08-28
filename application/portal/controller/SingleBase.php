@@ -9,26 +9,25 @@
 namespace app\portal\controller;
 
 
+use app\base\controller\BaseController;
 use app\lib\exception\TokenException;
 use app\lib\validate\IDPositive;
 use app\portal\model\SingleModel;
 use app\portal\validate\single\SingleAddValidate;
 use app\service\ResultService;
-use app\service\TokenService;
-use think\Controller;
 use think\Request;
 
-class SingleBase extends Controller
+class SingleBase extends BaseController
 {
+    protected $beforeActionList=[
+        'checkAdminPermission'
+    ];
     /**添加单页
      * @param Request $request
      * @return \think\response\Json
      * @throws TokenException
      */
     public function add(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new SingleAddValidate())->goCheck();
         $single=new SingleModel($request->param());
         if($request->has('content')){
@@ -47,9 +46,6 @@ class SingleBase extends Controller
      * @throws TokenException
      */
     public function delete(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new IDPositive())->goCheck();
         $id=$request->param('id');
         $single=SingleModel::where('id','=',$id)->find();
@@ -68,9 +64,6 @@ class SingleBase extends Controller
      * @throws TokenException
      */
     public function update(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new IDPositive())->goCheck();
         $id=$request->param('id');
         $single=SingleModel::where('id','=',$id)->find();
@@ -110,9 +103,6 @@ class SingleBase extends Controller
      * @throws TokenException
      */
     public function get(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         if($request->has('id')){
             (new IDPositive())->goCheck();
             $id=$request->param('id');
@@ -138,9 +128,6 @@ class SingleBase extends Controller
      * @throws TokenException
      */
     public function getByPage(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         $pageResult=[];
         $singles=SingleModel::with('template')->select();
         $singles->hidden(['create_time','update_time','template.create_time','template.update_time']);

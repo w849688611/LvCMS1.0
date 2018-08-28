@@ -9,12 +9,12 @@
 namespace app\util\controller;
 
 
+use app\base\controller\BaseController;
 use app\service\ResultService;
 use think\captcha\Captcha;
-use think\Controller;
 use think\Request;
 
-class CaptchaBase extends Controller
+class CaptchaBase extends BaseController
 {
     /**获取验证码 返回的直接是图片，需要前端配合一下，将生成时间作为id传过来，并在前端保存，验证的时候带id验证
      * @param Request $request

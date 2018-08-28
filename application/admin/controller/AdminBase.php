@@ -15,19 +15,23 @@ use app\admin\validate\admin\AdminLoginValidate;
 use app\admin\validate\admin\AdminPasswordValidate;
 use app\admin\validate\admin\AdminRoleValidate;
 use app\admin\validate\admin\AdminStatusValidate;
+use app\base\controller\BaseController;
+use app\base\enum\ClientTypeEnum;
 use app\lib\exception\TokenException;
 use app\lib\validate\IDPositive;
 use app\service\ResultService;
 use app\service\TokenService;
-use think\Controller;
 use think\Request;
 
 /**对管理员用户的基本操作（CURD）
  * Class AdminBase
  * @package app\admin\controller
  */
-class AdminBase extends Controller
+class AdminBase extends BaseController
 {
+    protected $beforeActionList=[
+        'checkAdminPermission'=>['except'=>'login,checkLogin']
+    ];
     /**添加管理员
      * @param Request $request
      * @return \think\response\Json
@@ -35,9 +39,6 @@ class AdminBase extends Controller
      * @throws \app\lib\exception\ParamException
      */
     public function add(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new AdminAddValidate())->goCheck();
         $admin=new AdminModel($request->param());
         $admin->password=$request->param('password');//触发一下修改器
@@ -55,9 +56,6 @@ class AdminBase extends Controller
      * @throws \think\exception\DbException
      */
     public function delete(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new IDPositive())->goCheck();
         $id=$request->param('id');
         $admin=AdminModel::where('id','=',$id)->find();
@@ -80,9 +78,6 @@ class AdminBase extends Controller
      * @throws \think\exception\DbException
      */
     public function update(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new IDPositive())->goCheck();
         $id=$request->param('id');
         $admin=AdminModel::where('id','=',$id)->find();
@@ -127,9 +122,6 @@ class AdminBase extends Controller
      * @throws \think\exception\DbException
      */
     public function get(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         if($request->has('id')){
             (new IDPositive())->goCheck();
             $id=$request->param('id');
@@ -156,9 +148,6 @@ class AdminBase extends Controller
      * @throws \think\exception\DbException
      */
     public function getByPage(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         $pageResult=[];
         $admin=AdminModel::with('role')->select()->toArray();
         $pageResult['total']=count($admin);
@@ -191,7 +180,8 @@ class AdminBase extends Controller
             'super'=>$admin->super,
             'status'=>$admin->status,
             'errorCount'=>$admin->error_count,
-            'isAdmin'=>'1'
+            'isAdmin'=>'1',
+            'clientType'=>ClientTypeEnum::ADMIN
         ];
         $token=TokenService::initToken($payload);
         return ResultService::makeResult(ResultService::Success,'',['token'=>$token]);
@@ -211,7 +201,7 @@ class AdminBase extends Controller
      * @return \think\response\Json
      */
     public function checkLogin(Request $request){
-        if(TokenService::validAdminToken($request->header('token'))){
+        if(self::checkClientPermission(ClientTypeEnum::ADMIN,false)){
             return ResultService::success();
         }
         else{

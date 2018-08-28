@@ -9,6 +9,7 @@
 namespace app\portal\controller;
 
 
+use app\base\controller\BaseController;
 use app\lib\exception\TokenException;
 use app\lib\validate\IDPositive;
 use app\portal\enum\PostStatusEnum;
@@ -22,15 +23,14 @@ use app\portal\model\SlideModel;
 use app\portal\validate\comment\CommentAddValidate;
 use app\service\ResultService;
 use app\service\TokenService;
-use think\Controller;
-use think\Hook;
+use think\Facade\Hook;
 use think\Request;
 
 /**专门用于前端数据获取（非管理端）
  * Class PortalFront
  * @package app\portal\controller
  */
-class PortalFront extends Controller
+class PortalFront extends BaseController
 {
     /**根据id获取栏目相关信息
      * @param Request $request
@@ -96,6 +96,28 @@ class PortalFront extends Controller
         return ResultService::failure('内容不存在');
     }
 
+    /**搜索文章
+     * @param Request $request
+     * @return \think\response\Json
+     * @throws TokenException
+     */
+    public function searchPost(Request $request){
+        $keyword='';
+        if($request->has('keyword')){
+            $keyword=$request->param('keyword');
+        }
+        $pageResult=[];
+        $posts=PostModel::with('category,template')->where('title','like',"%$keyword%")->select();
+        $pageResult['total']=count($posts);
+        if($request->has('page')){
+            $pageResult['page']=$page=$request->param('page');
+            $pageResult['pageSize']=$pageSize=$request->has('pageSize')?$request->param('pageSize'):config('base.defaultPageSize');
+            $posts=PostModel::page($page,$pageSize)->with('category')->where('title','like',"%$keyword%")->select();
+            $posts->hidden(['create_time','update_time','category.create_time','category.update_time','category.pivot']);
+        }
+        $pageResult['pageData']=$posts;
+        return ResultService::success('',$pageResult);
+    }
     /**获取内容的评论，根据是否含有页数来决定是否分页
      * @param Request $request
      * @return \think\response\Json
@@ -219,8 +241,5 @@ class PortalFront extends Controller
         else{
             return ResultService::failure('幻灯片组不存在');
         }
-    }
-    public function getFriendLink(Request $request){
-
     }
 }

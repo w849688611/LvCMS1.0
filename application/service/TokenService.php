@@ -10,6 +10,7 @@ namespace app\service;
 
 
 use Cache;
+use think\facade\Request;
 
 class TokenService
 {
@@ -76,6 +77,23 @@ class TokenService
         }
         return false;
     }
+
+    /**验证访问者类型
+     * @param $token
+     * @param $clientType
+     * @return bool
+     */
+    public static function validClientToken($token,$clientType){
+        $payload=Cache::get($token);
+        if($payload){
+            return self::getCurrentVars($token,'clientType')==$clientType?true:false;
+        }
+    }
+
+    /**验证是否为管理员大类
+     * @param $token
+     * @return bool
+     */
     public static function validAdminToken($token){
         $payload=Cache::get($token);
         if($payload){
@@ -83,11 +101,20 @@ class TokenService
         }
         return false;
     }
+
+    /**验证是否为用户大类
+     * @param $token
+     * @return bool
+     */
     public static function validUserToken($token){
         $payload=Cache::get($token);
         if($payload){
             return self::getCurrentVars($token,'isUser')=='1'?true:false;
         }
         return false;
+    }
+    public static function currentToken(){
+        $request=Request::instance();
+        return $request->header('token');
     }
 }

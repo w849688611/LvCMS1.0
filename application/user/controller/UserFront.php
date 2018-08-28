@@ -9,6 +9,7 @@
 namespace app\user\controller;
 
 
+use app\base\controller\BaseController;
 use app\lib\exception\TokenException;
 use app\service\ResultService;
 use app\service\TokenService;
@@ -18,7 +19,7 @@ use app\user\validate\UserLoginValidate;
 use app\user\validate\UserPasswordValidate;
 use think\Request;
 
-class UserFront
+class UserFront extends BaseController
 {
     /**用户登录
      * @param Request $request
@@ -35,7 +36,8 @@ class UserFront
             'type'=>$user->type,
             'status'=>$user->status,
             'errorCount'=>$user->error_count,
-            'isUser'=>'1'
+            'isUser'=>'1',
+            'clientType'=>$user->type
         ];
         $token=TokenService::initToken($payload);
         return ResultService::makeResult(ResultService::Success,'',['token'=>$token]);
@@ -71,7 +73,7 @@ class UserFront
     public function register(Request $request){
         (new UserAddValidate())->goCheck();
         $user=new UserModel($request->param());
-        $user->password=$request->param('password');
+        $user->password=$request->param('password');//触发存储器
         $user->more=$request->param('more','','htmlspecialchars_decode,json_decode');
         $user->allowField(true)->save();
         return ResultService::success('注册用户成功');

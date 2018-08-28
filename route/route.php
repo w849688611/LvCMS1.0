@@ -159,6 +159,29 @@ Route::rule('api/plugin/update','plugin/PluginBase/update');
 Route::rule('api/plugin/toggle','plugin/PluginBase/toggle');
 Route::rule('api/plugin/help','plugin/PluginBase/help');
 /**
+ * 全局配置管理相关接口
+ */
+Route::rule('api/setting/add','setting/SettingBase/add');
+Route::rule('api/setting/delete','setting/SettingBase/delete');
+Route::rule('api/setting/update','setting/SettingBase/update');
+Route::rule('api/setting/get','setting/SettingBase/get');
+Route::rule('api/setting/getByPage','setting/SettingBase/getByPage');
+Route::rule('api/setting/getItemOfSetting','setting/SettingBase/getItemOfSetting');
+Route::rule('api/setting/item/add','setting/SettingItemBase/add');
+Route::rule('api/setting/item/delete','setting/SettingItemBase/delete');
+Route::rule('api/setting/item/update','setting/SettingItemBase/update');
+Route::rule('api/setting/item/get','setting/SettingItemBase/get');
+Route::rule('api/setting/item/getByPage','setting/SettingItemBase/getByPage');
+/**
+ * 邮箱服务接口
+ */
+Route::rule('api/mail/add','mail/MailBase/add');
+Route::rule('api/mail/delete','mail/MailBase/delete');
+Route::rule('api/mail/update','mail/MailBase/update');
+Route::rule('api/mail/get','mail/MailBase/get');
+Route::rule('api/mail/getByPage','mail/MailBase/getByPage');
+Route::rule('api/mail/send','mail/MailBase/sendMail');
+/**
  * 其他接口
  */
 Route::rule('api/dashboard/getBackDashBoard','dashboard/DashBoardBase/getBackDashBoard');
@@ -178,12 +201,17 @@ Route::rule('api/front/user/get','user/UserFront/get');
 Route::rule('api/front/portal/getCategory','portal/PortalFront/getCategory');
 Route::rule('api/front/portal/getPostOfCategory','portal/PortalFront/getPostOfCategory');
 Route::rule('api/front/portal/getPost','portal/PortalFront/getPost');
+Route::rule('api/front/portal/searchPost','portal/PortalFront/searchPost');
+Route::rule('api/front/portal/getSingle','portal/PortalFront/getSingle');
 Route::rule('api/front/portal/getCommentOfPost','portal/PortalFront/getCommentOfPost');
 Route::rule('api/front/portal/addComment','portal/PortalFront/addComment');
 Route::rule('api/front/portal/deleteComment','portal/PortalFront/deleteComment');
 Route::rule('api/front/portal/getNav','portal/PortalFront/getNav');
 Route::rule('api/front/portal/getSlide','portal/PortalFront/getSlide');
-
+/**
+ * setting
+ */
+Route::rule('api/front/setting/get','setting/SettingFront/get');
 
 Hook::listen('plugin_route');
 

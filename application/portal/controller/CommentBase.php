@@ -9,31 +9,28 @@
 namespace app\portal\controller;
 
 
+use app\base\controller\BaseController;
 use app\lib\exception\TokenException;
 use app\lib\validate\IDPositive;
-use app\portal\enum\TypeEnum;
 use app\portal\model\CommentModel;
-use app\portal\model\PostModel;
 use app\service\ResultService;
-use app\service\TokenService;
-use think\Controller;
 use think\Request;
 
 /**后台对评论的操作（查看评论内容，删除评论）
  * Class CommentBase
  * @package app\portal\controller
  */
-class CommentBase extends Controller
+class CommentBase extends BaseController
 {
+    protected $beforeActionList=[
+        'checkAdminPermission'
+    ];
     /**获取评论信息
      * @param Request $request
      * @return \think\response\Json
      * @throws TokenException
      */
     public function get(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new IDPositive())->goCheck();
         $id=$request->param('id');
         $comment=CommentModel::where('id','=',$id)->with(['post','user','replyUser'])->find();
@@ -51,9 +48,6 @@ class CommentBase extends Controller
      * @throws TokenException
      */
     public function update(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new IDPositive())->goCheck();
         $id=$request->param('id');
         $comment=CommentModel::get($id);
@@ -74,9 +68,6 @@ class CommentBase extends Controller
      * @throws TokenException
      */
     public function delete(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new IDPositive())->goCheck();
         $id=$request->param('id');
         $comment=CommentModel::where('id','=',$id)->find();
@@ -96,9 +87,6 @@ class CommentBase extends Controller
      * @throws TokenException
      */
     public function search(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         $keyword='';
         $pageResult=[];
         if($request->has('keyword')){

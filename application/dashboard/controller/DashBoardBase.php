@@ -11,21 +11,22 @@ namespace app\dashboard\controller;
 
 use app\admin\model\AdminModel;
 use app\admin\model\RoleModel;
-use app\lib\exception\TokenException;
+use app\base\controller\BaseController;
+use app\base\enum\ClientTypeEnum;
+use app\mail\model\MailModel;
 use app\plugin\model\PluginModel;
 use app\portal\model\PostModel;
 use app\service\ResultService;
 use app\service\TokenService;
 use app\user\model\UserModel;
-use think\Controller;
 use think\Request;
 
-class DashBoardBase extends Controller
+class DashBoardBase extends BaseController
 {
+    protected $beforeActionList=[
+        'checkAdminPermission'
+    ];
     public function getBackDashBoard(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         $token=$request->header('token');
         $admin=[
             'account'=>TokenService::getCurrentVars($token,'account'),
@@ -38,12 +39,14 @@ class DashBoardBase extends Controller
         $postCount=PostModel::count();
         $pluginCount=PluginModel::count();
         $newPost=PostModel::limit(10)->field(['title','published_time','author'])->order('create_time','desc')->select()->toArray();
+        $mailCount=MailModel::where('client_type','=',ClientTypeEnum::ADMIN);
         $data=[
             'adminCount'=>$adminCount,
             'userCount'=>$userCount,
             'postCount'=>$postCount,
             'pluginCount'=>$pluginCount,
             'newPost'=>$newPost,
+            'mailCount'=>$mailCount,
             'admin'=>$admin
         ];
         return ResultService::success('',$data);

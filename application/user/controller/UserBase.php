@@ -9,34 +9,33 @@
 namespace app\user\controller;
 
 
+use app\base\controller\BaseController;
 use app\lib\exception\TokenException;
 use app\lib\validate\IDPositive;
 use app\lib\validate\IDSPositive;
 use app\service\ResultService;
-use app\service\TokenService;
 use app\user\enum\UserStatusEnum;
 use app\user\model\UserModel;
 use app\user\validate\UserAddValidate;
 use app\user\validate\UserPasswordValidate;
 use app\user\validate\UserStatusValidate;
-use think\Controller;
 use think\Request;
 
 /**管理员后台对用户操作
  * Class UserBase
  * @package app\user\controller
  */
-class UserBase extends Controller
+class UserBase extends BaseController
 {
+    protected $beforeActionList=[
+        'checkAdminPermission'
+    ];
     /**添加用户
      * @param Request $request
      * @return \think\response\Json
      * @throws TokenException
      */
     public function add(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new UserAddValidate())->goCheck();
         $user=new UserModel($request->param());
         $user->password=$request->param('password');
@@ -51,9 +50,6 @@ class UserBase extends Controller
      * @throws TokenException
      */
     public function delete(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         if($request->has('id')){
             (new IDPositive())->goCheck();
             $id=$request->param('id');
@@ -81,9 +77,6 @@ class UserBase extends Controller
      * @throws TokenException
      */
     public function update(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new IDPositive())->goCheck();
         $id=$request->param('id');
         $user=UserModel::where('id','=',$id)->find();
@@ -123,9 +116,6 @@ class UserBase extends Controller
      * @throws TokenException
      */
     public function get(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         if($request->has('id')){
             (new IDPositive())->goCheck();
             $id=$request->param('id');
@@ -149,9 +139,6 @@ class UserBase extends Controller
      * @throws TokenException
      */
     public function getByPage(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         $pageResult=[];
         $user=UserModel::with('userGroup')->select()->toArray();
         $pageResult['total']=count($user);

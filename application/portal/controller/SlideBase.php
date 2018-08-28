@@ -9,27 +9,27 @@
 namespace app\portal\controller;
 
 
+use app\base\controller\BaseController;
 use app\lib\exception\TokenException;
 use app\lib\validate\IDPositive;
+use app\lib\validate\IDSPositive;
 use app\portal\model\SlideItemModel;
 use app\portal\model\SlideModel;
 use app\portal\validate\slide\SlideAddValidate;
 use app\service\ResultService;
-use app\service\TokenService;
-use think\Controller;
 use think\Request;
 
-class SlideBase extends Controller
+class SlideBase extends BaseController
 {
+    protected $beforeActionList=[
+        'checkAdminPermission'
+    ];
     /**添加幻灯片组
      * @param Request $request
      * @return \think\response\Json
      * @throws TokenException
      */
     public function add(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new SlideAddValidate())->goCheck();
         $slide=new SlideModel($request->param());
         if($request->has('more')){
@@ -45,20 +45,28 @@ class SlideBase extends Controller
      * @throws TokenException
      */
     public function delete(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
+        if($request->has('id')){
+            (new IDPositive())->goCheck();
+            $id=$request->param('id');
+            $slide=SlideModel::where('id','=',$id)->find();
+            if($slide){
+                SlideItemModel::where('slide_id','=',$slide->id)->delete();
+                $slide->delete();
+                return ResultService::success('删除幻灯片组成功');
+            }
+            else{
+                return ResultService::failure('幻灯片组不存在');
+            }
         }
-        (new IDPositive())->goCheck();
-        $id=$request->param('id');
-        $slide=SlideModel::where('id','=',$id)->find();
-        if($slide){
-            SlideItemModel::where('slide_id','=',$slide->id)->delete();
-            $slide->delete();
+        else if($request->has('ids')){
+            (new IDSPositive())->goCheck();
+            $ids=$request->param('ids/a');
+            SlideModel::where('id','in',$ids)->delete();
+            SlideItemModel::where('slide_id','in',$ids)->delete();
             return ResultService::success('删除幻灯片组成功');
+
         }
-        else{
-            return ResultService::failure('幻灯片组不存在');
-        }
+        return ResultService::failure();
     }
 
     /**更新幻灯片组
@@ -67,9 +75,6 @@ class SlideBase extends Controller
      * @throws TokenException
      */
     public function update(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new IDPositive())->goCheck();
         $id=$request->param('id');
         $slide=SlideModel::where('id','=',$id)->find();
@@ -97,9 +102,6 @@ class SlideBase extends Controller
      * @throws TokenException
      */
     public function get(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         if($request->has('id')){
             (new IDPositive())->goCheck();
             $id=$request->param('id');
@@ -124,9 +126,6 @@ class SlideBase extends Controller
      * @throws TokenException
      */
     public function getByPage(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         $pageResult=[];
         $slides=SlideModel::select()->toArray();
         $pageResult['total']=count($slides);
@@ -145,9 +144,6 @@ class SlideBase extends Controller
      * @throws TokenException
      */
     public function getItemOfSlide(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new IDPositive())->goCheck();
         $id=$request->param('id');
         $items=SlideModel::generateItem($id);

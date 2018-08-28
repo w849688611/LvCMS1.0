@@ -9,6 +9,7 @@
 namespace app\portal\controller;
 
 
+use app\base\controller\BaseController;
 use app\lib\exception\TokenException;
 use app\lib\validate\IDPositive;
 use app\lib\validate\IDSPositive;
@@ -18,20 +19,19 @@ use app\portal\model\PostModel;
 use app\portal\validate\post\PostAddValidate;
 use app\service\ResultService;
 use app\service\TokenService;
-use think\Controller;
 use think\Request;
 
-class PostBase extends Controller
+class PostBase extends BaseController
 {
+    protected $beforeActionList=[
+        'checkAdminPermission'
+    ];
     /**添加内容
      * @param Request $request
      * @return \think\response\Json
      * @throws TokenException
      */
     public function add(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new PostAddValidate())->goCheck();
         $post=new PostModel($request->param());
         $post->user_id=TokenService::getCurrentVars($request->header('token'),'id');
@@ -61,9 +61,6 @@ class PostBase extends Controller
      * @throws TokenException
      */
     public function delete(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         if($request->has('id')){
             (new IDPositive())->goCheck();
             $id=$request->param('id');
@@ -94,9 +91,6 @@ class PostBase extends Controller
      * @throws TokenException
      */
     public function update(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new IDPositive())->goCheck();
         $id=$request->param('id');
         $post=PostModel::where('id','=',$id)->find();
@@ -165,16 +159,13 @@ class PostBase extends Controller
      * @throws TokenException
      */
     public function get(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         if($request->has('id')){
             (new IDPositive())->goCheck();
             $id=$request->param('id');
             $post=PostModel::where('id','=',$id)->with('category,template')->find();
             if($post){
                 $post->hidden(['create_time','update_time','category.create_time','category.update_time','category.pivot','template.create_time','template.update_time']);
-                return ResultService::makeResult(ResultService::Success,'',$post->toArray());
+                return ResultService::success('',$post->toArray());
             }
             else{
                 return ResultService::failure('内容不存在');
@@ -183,7 +174,7 @@ class PostBase extends Controller
         else{
             $posts=PostModel::with('category,template')->select();
             $posts->hidden(['create_time','update_time','category.create_time','category.update_time','category.pivot','template.create_time','template.update_time']);
-            return ResultService::makeResult(ResultService::Success,'',$posts->toArray());
+            return ResultService::success('',$posts->toArray());
         }
     }
 
@@ -193,32 +184,43 @@ class PostBase extends Controller
      * @throws TokenException
      */
     public function getByPage(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         $pageResult=[];
-        $posts=PostModel::with('category,template')->order('create_time','desc')->select();
+        $query=new PostModel();
+        $temp=new PostModel();
+        if($request->has('title')){
+            $title=$request->param('title');
+            $query=$query->where('title','like',"%$title%");
+            $temp=$temp->where('title','like',"%$title%");
+        }
+        if($request->has('author')){
+            $author=$request->param('author');
+            $query=$query->where('author','like',"%$author%");
+            $temp=$temp->where('author','like',"%$author%");
+        }
+        if($request->has('post_status')){
+            $postStatus=$request->param('post_status');
+            $query=$query->where('post_status','=',$postStatus);
+            $temp=$temp->where('post_status','=',$postStatus);
+        }
+        $posts=$query->order('create_time','desc')->select();
         $posts->hidden(['create_time','update_time','category.create_time','category.update_time','category.pivot','template.create_time','template.update_time']);
         $pageResult['total']=count($posts);
         if($request->has('page')){
             $pageResult['page']=$page=$request->param('page');
             $pageResult['pageSize']=$pageSize=$request->has('pageSize')?$request->param('pageSize'):config('base.defaultPageSize');
-            $posts=PostModel::page($page,$pageSize)->with('category')->order('create_time','desc')->select();
+            $posts=$temp->page($page,$pageSize)->order('create_time','desc')->select();
             $posts->hidden(['create_time','update_time','category.create_time','category.update_time','category.pivot']);
         }
         $pageResult['pageData']=$posts;
-        return ResultService::makeResult(ResultService::Success,'',$pageResult);
+        return ResultService::success('',$pageResult);
     }
 
-    /**搜索文章
+    /**搜索文章(废弃)
      * @param Request $request
      * @return \think\response\Json
      * @throws TokenException
      */
     public function search(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         $keyword='';
         if($request->has('keyword')){
             $keyword=$request->param('keyword');
@@ -233,7 +235,7 @@ class PostBase extends Controller
             $posts->hidden(['create_time','update_time','category.create_time','category.update_time','category.pivot']);
         }
         $pageResult['pageData']=$posts;
-        return ResultService::makeResult(ResultService::Success,'',$pageResult);
+        return ResultService::success('',$pageResult);
     }
     /**后台获取文章评论
      * @param Request $request
@@ -241,9 +243,6 @@ class PostBase extends Controller
      * @throws TokenException
      */
     public function getCommentOfPost(Request $request){
-        if(!TokenService::validAdminToken($request->header('token'))){
-            throw new TokenException();
-        }
         (new IDPositive())->goCheck();
         $id=$request->param('id');
         $pageResult=[];
@@ -255,6 +254,6 @@ class PostBase extends Controller
             $comments=CommentModel::getCommentTree($id,true,$page,$pageSize);
         }
         $pageResult['pageData']=$comments;
-        return ResultService::makeResult(ResultService::Success,'',$pageResult);
+        return ResultService::success('',$pageResult);
     }
 }
