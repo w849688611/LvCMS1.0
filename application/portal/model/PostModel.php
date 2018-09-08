@@ -15,6 +15,8 @@ class PostModel extends Model
 {
     protected $name='post';
     protected $autoWriteTimestamp=true;
+    protected $json=['more'];
+    protected $jsonAssoc = true;
 
     /*************关联**************/
     public function category(){
@@ -24,10 +26,10 @@ class PostModel extends Model
         return $this->belongsTo('TemplateModel','template_id');
     }
     /*************存取器**************/
-    public function getMoreAttr($value){
-        return json_decode($value,true);
-    }
-    public function setMoreAttr($value){
-        return json_encode($value);
-    }
+//    public function getMoreAttr($value){
+//        return json_decode($value,true);
+//    }
+//    public function setMoreAttr($value){
+//        return json_encode($value);
+//    }
 }

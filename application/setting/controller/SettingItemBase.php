@@ -71,11 +71,11 @@ class SettingItemBase extends BaseController
         $id=$request->param('id');
         $settingItem=SettingItemModel::where('id','=',$id)->find();
         if($settingItem){
-            if($request->has('name')){
-                $settingItem->name=$request->param('name');
-            }
             if($request->has('type')){
                 $settingItem->type=$request->param('type');
+            }
+            if($request->has('excerpt')){
+                $settingItem->excerpt=$request->param('excerpt');
             }
             if($request->has('content')){
                 $settingItem->content=$request->param('content');
@@ -88,6 +88,12 @@ class SettingItemBase extends BaseController
             }
             if($request->has('more')){
                 $settingItem->more=json_decode(htmlspecialchars_decode($request->param('more')),true);
+            }
+            /**
+             * 将name写在最后为了获取setting_id
+             */
+            if($request->has('name')){
+                $settingItem->name=$request->param('name');
             }
             $settingItem->allowField(true)->save();
             return ResultService::success('更新配置项成功');

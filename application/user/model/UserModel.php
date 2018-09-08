@@ -15,15 +15,11 @@ class UserModel extends Model
 {
     protected $name='user';
     protected $autoWriteTimestamp=true;
+    protected $json=['more'];
+    protected $jsonAssoc = true;
 
     public function setPasswordAttr($value){
         return md5(config('security.salt').$value);
-    }
-    public function getMoreAttr($value){
-        return json_decode($value,true);
-    }
-    public function setMoreAttr($value){
-        return json_encode($value);
     }
     public function checkPassword($password){
         if(md5(config('security.salt').$password)==$this->password){
